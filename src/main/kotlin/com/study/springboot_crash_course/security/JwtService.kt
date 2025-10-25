@@ -13,8 +13,8 @@ class JwtService(
     @Value("JWT_SECRET") private val jwtsecret: String
 ) {
     private val secretKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtsecret))
-    private val accessTokenValidityMs = 15L * 60L * 1000L
-    private val refreshTokenValidityMs = 30L * 24 * 60 * 60 * 1000
+     val accessTokenValidityMs = 15L * 60L * 1000L
+     val refreshTokenValidityMs = 30L * 24 * 60 * 60 * 1000
 
 
     //token builder
