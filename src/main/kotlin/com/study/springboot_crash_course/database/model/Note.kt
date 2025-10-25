@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 
 //this tells mongo as its a real document
-@Document("Notes")
+@Document("notes")
 data class Note(
     val title: String,
     val content: String,
