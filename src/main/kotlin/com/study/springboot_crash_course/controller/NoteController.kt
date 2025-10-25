@@ -1,3 +1,4 @@
+// kotlin
 package com.study.springboot_crash_course.controller
 
 import com.study.springboot_crash_course.controller.NoteController.NoteResponse
@@ -5,7 +6,6 @@ import com.study.springboot_crash_course.database.model.Note
 import com.study.springboot_crash_course.database.repository.NoteRepository
 import jakarta.validation.constraints.Positive
 import org.bson.types.ObjectId
-import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,9 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
-
-//POST - http://localhost:8080/notes
-//GET - http://localhost:8080/notes?ownerId=?
 
 @RestController
 @RequestMapping("/notes")
@@ -40,24 +37,23 @@ class NoteController(
         val createdAt: Instant,
     )
 
-
-    //wont work normally due to csrf safety (must read about it)
-    //for this to be working we need to create a seqConfig.kt file
     @PostMapping
-    fun save(
-        @RequestBody body: NoteRequest): NoteResponse {
+    fun save(@RequestBody body: NoteRequest): NoteResponse {
         val ownerId = SecurityContextHolder.getContext().authentication?.principal?.toString()
             ?: throw IllegalStateException("Unauthenticated")
+
+        if (!ObjectId.isValid(ownerId)) {
+            throw IllegalArgumentException("Invalid user id in token")
+        }
+
         val note = noteRepository.save(
             Note(
-                //syntax is important this shows
-                //if note exist then change the string to ObjectId else create a new ObjectId
                 id = body.id?.let { ObjectId(it) } ?: ObjectId.get(),
                 title = body.title,
                 content = body.content,
                 color = body.color,
                 createdAt = Instant.now(),
-                userId = (ObjectId(ownerId))
+                userId = ObjectId(ownerId)
             )
         )
         return note.toResponse()
@@ -65,28 +61,32 @@ class NoteController(
 
     @GetMapping
     fun findByOwnerId(): List<NoteResponse> {
+        val ownerId = SecurityContextHolder.getContext().authentication?.principal?.toString()
+            ?: throw IllegalStateException("Unauthenticated")
 
-        val ownerId= SecurityContextHolder.getContext().authentication.principal as String
-        return noteRepository.findByUserId(ObjectId(ownerId)).map {
-            it.toResponse()
+        if (!ObjectId.isValid(ownerId)) {
+            throw IllegalArgumentException("Invalid user id in token")
         }
+
+        return noteRepository.findByUserId(ObjectId(ownerId)).map { it.toResponse() }
     }
 
-
     @DeleteMapping(path = ["/{id}"])
-    fun deleteById(
-        @PathVariable id: String
-    ){
-        val note= noteRepository.findById(ObjectId(id)).orElseThrow{
+    fun deleteById(@PathVariable id: String) {
+        val note = noteRepository.findById(ObjectId(id)).orElseThrow {
             throw IllegalArgumentException("No note found with id $id")
         }
-        val ownerId= SecurityContextHolder.getContext().authentication.principal as String
 
-        //only delete node if that note belongs to the current user
-        if(note.userId.toString()== ownerId){
-            noteRepository.deleteById(ObjectId(id))
+        val ownerId = SecurityContextHolder.getContext().authentication?.principal?.toString()
+            ?: throw IllegalStateException("Unauthenticated")
+
+        if (!ObjectId.isValid(ownerId)) {
+            throw IllegalArgumentException("Invalid user id in token")
         }
 
+        if (note.userId.toString() == ownerId) {
+            noteRepository.deleteById(ObjectId(id))
+        }
     }
 }
 
@@ -99,4 +99,3 @@ private fun Note.toResponse(): NoteController.NoteResponse {
         createdAt = createdAt
     )
 }
-

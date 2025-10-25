@@ -1,11 +1,12 @@
+// kotlin
 package com.study.springboot_crash_course.security
 
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.bson.types.ObjectId
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
@@ -16,15 +17,20 @@ class JwtAuthFilter(private val jwtService: JwtService) : OncePerRequestFilter()
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        //bearer
         val authHeader = request.getHeader("Authorization")
-        if(authHeader != null && authHeader.startsWith("Bearer ")){
-            if(jwtService.validateAccessToken(authHeader)){
-                val userId = jwtService.getUserIdFromToken(authHeader)
-                val auth = UsernamePasswordAuthenticationToken(userId,null)
-
-                //a utility for us to access the auth object across the codebase
-                SecurityContextHolder.getContext().authentication = auth
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            val token = authHeader.substringAfter("Bearer ").trim()
+            try {
+                if (jwtService.validateAccessToken(token)) {
+                    val userId = jwtService.getUserIdFromToken(token)?.toString() ?: ""
+                    // only set authentication when userId is a valid ObjectId hex
+                    if (ObjectId.isValid(userId)) {
+                        val auth = UsernamePasswordAuthenticationToken(userId, null, emptyList())
+                        SecurityContextHolder.getContext().authentication = auth
+                    }
+                }
+            } catch (ex: Exception) {
+                // don't set authentication if token parsing fails; let downstream handle unauthenticated access
             }
         }
         filterChain.doFilter(request, response)
