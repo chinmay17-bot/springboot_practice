@@ -31,7 +31,7 @@ class AuthService(
         return userRepository.save(
             User(
                 email = email,
-                hashedPassword = hashEncoder.encode(password),
+                hashedPassword = hashEncoder.encode(password)
             )
         )
     }

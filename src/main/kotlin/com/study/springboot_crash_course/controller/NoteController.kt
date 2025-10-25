@@ -46,7 +46,8 @@ class NoteController(
     @PostMapping
     fun save(
         @RequestBody body: NoteRequest): NoteResponse {
-        val ownerId= SecurityContextHolder.getContext().authentication.principal as String
+        val ownerId = SecurityContextHolder.getContext().authentication?.principal?.toString()
+            ?: throw IllegalStateException("Unauthenticated")
         val note = noteRepository.save(
             Note(
                 //syntax is important this shows
@@ -56,7 +57,7 @@ class NoteController(
                 content = body.content,
                 color = body.color,
                 createdAt = Instant.now(),
-                userId = ObjectId(ownerId)
+                userId = (ObjectId(ownerId))
             )
         )
         return note.toResponse()
@@ -82,7 +83,7 @@ class NoteController(
         val ownerId= SecurityContextHolder.getContext().authentication.principal as String
 
         //only delete node if that note belongs to the current user
-        if(note.userId.toHexString()== ownerId){
+        if(note.userId.toString()== ownerId){
             noteRepository.deleteById(ObjectId(id))
         }
 

@@ -27,6 +27,6 @@ class JwtAuthFilter(private val jwtService: JwtService) : OncePerRequestFilter()
                 SecurityContextHolder.getContext().authentication = auth
             }
         }
-//        filterChain.doFilter(request, response)
+        filterChain.doFilter(request, response)
     }
 }
