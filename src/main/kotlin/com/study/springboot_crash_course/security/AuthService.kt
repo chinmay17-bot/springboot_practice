@@ -7,6 +7,7 @@ import com.study.springboot_crash_course.database.repository.UserRepository
 import io.jsonwebtoken.lang.Objects
 import jakarta.servlet.http.HttpServletResponse
 import org.bson.types.ObjectId
+import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -31,6 +32,10 @@ class AuthService(
     )
 
     fun register(email: String, password: String): User {
+        val user= userRepository.findByEmail(email.trim())
+        if(user != null){
+            throw ResponseStatusException(HttpStatus.CONFLICT,"Email already in use")
+        }
         return userRepository.save(
             User(
                 email = email,
