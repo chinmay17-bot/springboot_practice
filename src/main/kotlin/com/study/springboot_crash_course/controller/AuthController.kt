@@ -1,6 +1,8 @@
 package com.study.springboot_crash_course.controller
 
 import com.study.springboot_crash_course.security.AuthService
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.Pattern
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -12,7 +14,9 @@ class AuthController(
     private val authService: AuthService,
 ) {
     data class AuthRequest(
+        @field:Email(message = "Invalid email format")
         val email: String,
+        @field:Pattern(regexp = "^[A-Za-z0-9]{8,}\$", message = "Password must be at least 8 characters long and contain only letters and numbers")
         val password: String
     )
     data class RefreshRequest(

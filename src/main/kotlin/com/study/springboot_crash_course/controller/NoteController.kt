@@ -4,6 +4,7 @@ package com.study.springboot_crash_course.controller
 import com.study.springboot_crash_course.controller.NoteController.NoteResponse
 import com.study.springboot_crash_course.database.model.Note
 import com.study.springboot_crash_course.database.repository.NoteRepository
+import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
 import org.bson.types.ObjectId
 import org.springframework.security.core.context.SecurityContextHolder
@@ -24,6 +25,7 @@ class NoteController(
 ) {
     data class NoteRequest(
         val id: String?,
+        @NotBlank(message = "Title must not be blank")
         val title: String,
         val content: String,
         val color: Long
