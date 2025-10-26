@@ -4,9 +4,11 @@ package com.study.springboot_crash_course.controller
 import com.study.springboot_crash_course.controller.NoteController.NoteResponse
 import com.study.springboot_crash_course.database.model.Note
 import com.study.springboot_crash_course.database.repository.NoteRepository
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
 import org.bson.types.ObjectId
+import org.springframework.data.mongodb.core.mapping.Field
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -25,7 +27,7 @@ class NoteController(
 ) {
     data class NoteRequest(
         val id: String?,
-        @NotBlank(message = "Title must not be blank")
+        @field:NotBlank(message = "Title must not be blank")
         val title: String,
         val content: String,
         val color: Long
@@ -40,7 +42,7 @@ class NoteController(
     )
 
     @PostMapping
-    fun save(@RequestBody body: NoteRequest): NoteResponse {
+    fun save(@Valid @RequestBody body: NoteRequest): NoteResponse {
         val ownerId = SecurityContextHolder.getContext().authentication?.principal?.toString()
             ?: throw IllegalStateException("Unauthenticated")
 
